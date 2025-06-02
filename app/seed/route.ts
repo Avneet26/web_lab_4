@@ -1,6 +1,8 @@
 import bcrypt from 'bcrypt';
 import postgres from 'postgres';
 import { invoices, customers, revenue, users } from '../lib/placeholder-data';
+export const runtime = 'nodejs'; // or 'edge' if you're using Edge runtime
+
 
 const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
 
