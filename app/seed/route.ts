@@ -1,7 +1,6 @@
 import bcrypt from 'bcrypt';
 import postgres from 'postgres';
 import { invoices, customers, revenue, users } from '../lib/placeholder-data';
-export const runtime = 'nodejs'; // or 'edge' if you're using Edge runtime
 
 
 const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
@@ -103,17 +102,24 @@ async function seedRevenue() {
   return insertedRevenue;
 }
 
+export const runtime = 'nodejs'; // Avoid edge runtime issues
+
 export async function GET() {
+  if (process.env.NODE_ENV === 'production') {
+    return new Response("Seeding is not allowed in production.", { status: 403 });
+  }
+
   try {
-    const result = await sql.begin((sql) => [
+    await sql.begin((sql) => [
       seedUsers(),
       seedCustomers(),
       seedInvoices(),
       seedRevenue(),
     ]);
-
     return Response.json({ message: 'Database seeded successfully' });
   } catch (error) {
-    return Response.json({ error }, { status: 500 });
+    console.error('Seeding error:', error);
+    return Response.json({ error: 'Failed to seed database' }, { status: 500 });
   }
 }
+
